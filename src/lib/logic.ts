@@ -1,5 +1,5 @@
 import { createMicroCMSClient } from './client';
-import type { ImageType } from '@/types/index';
+import type { ImageType } from '../types/index';
 import { OpenAI } from 'openai';
 
 const tagList = [
@@ -70,6 +70,8 @@ export async function handleChatToTags(
   question: string,
   env: { OPENAI_API_KEY: string }
 ): Promise<{ id: string; label: string }[]> {
+  console.log('[handleChatToTags] 入力:', question);
+
   const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
   const systemPrompt = `以下は画像のタグ一覧です。\n\n${tagList.map((tag) => `${tag.label}: ${tag.id}`).join('\n')}\n\nユーザーの質問に関連するラベル（日本語）を複数選び、JSON形式で返してください（例: {"tags": ["誕生日", "花火"]）`;
@@ -82,6 +84,8 @@ export async function handleChatToTags(
     ],
     response_format: { type: 'json_object' },
   });
+
+  console.log('[handleChatToTags] OpenAI応答:', completion.choices[0].message.content);
 
   const parsed = JSON.parse(completion.choices[0].message.content || '{}');
   const matchedLabels = Array.isArray(parsed.tags)
@@ -96,10 +100,9 @@ export async function fetchImagesByTagsOrKeywords(
   keyword: string,
   env: { MICROCMS_SERVICE_DOMAIN: string; MICROCMS_API_KEY: string }
 ): Promise<ImageType[]> {
-  const client = createMicroCMSClient({
-    MICROCMS_SERVICE_DOMAIN: env.MICROCMS_SERVICE_DOMAIN,
-    MICROCMS_API_KEY: env.MICROCMS_API_KEY,
-  });
+  console.log('[fetchImagesByTagsOrKeywords] 入力:', { tags, keyword });
+
+  const client = createMicroCMSClient(env);
 
   const tagFilter = tags.length
     ? `(${tags.map((tag) => `tags[contains]${tag.id}`).join('[or]')})`
@@ -114,6 +117,8 @@ export async function fetchImagesByTagsOrKeywords(
 
   const finalFilter = tagFilter ? `(${tagFilter}[or]${keywordFilter})` : keywordFilter;
 
+  console.log('[fetchImagesByTagsOrKeywords] フィルター:', finalFilter);
+
   const data = await client.get({
     endpoint: 'images',
     queries: {
@@ -121,6 +126,8 @@ export async function fetchImagesByTagsOrKeywords(
       limit: 20,
     },
   });
+
+  console.log('[fetchImagesByTagsOrKeywords] MicroCMSレスポンス:', data);
 
   return data.contents;
 }
