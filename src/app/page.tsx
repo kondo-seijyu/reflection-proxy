@@ -1,3 +1,10 @@
+import Link from "next/link";
+
 export default function Home() {
-  return <p>Hello from reflection-proxy!</p>;
+  return (
+    <main>
+      <h1>トップページ</h1>
+      <Link href="/sensee-chat">Sensee Chat へ</Link>
+    </main>
+  );
 }
