@@ -41,7 +41,7 @@ export default function ChatSearchPage() {
     setMessages((prev) => [...prev, { role: 'user', text: input }]);
     setLoading(true);
     try {
-      const res = await fetch('/api/reflection-chat', {
+      const res = await fetch('/api/sensee-chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
